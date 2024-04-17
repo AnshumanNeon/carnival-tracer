@@ -17,6 +17,6 @@ $(BUILD_DIR)/$(TARGET): $(OBJ)
 	mkdir -p $(BUILD_DIR)
 	$(CC) $(C_FLAGS) $(INC_FILES) $(SRC_FILES) -o $@
 
-.PHONY: clean
+.PHONY: $(BUILD_DIR)/$(TARGET) clean
 clean:
 	rm -r $(BUILD_DIR)

@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "../include/color.h"
 
 int main() {
   FILE* file = fopen("./image.ppm", "w+");
@@ -10,17 +9,12 @@ int main() {
 
   for(int i = 0; i < img_height; i++) {
     printf("\rScanlines remaining: %d\n", img_height-i);
+    HMM_Vec3 pixel_color = {.R = 0, (double)i / (img_height - 1), 0};
     
     for(int j = 0; j < img_width; j++) {
-      double r = (double)i / (img_width-1);
-      double g = (double)j / (img_height-1);
-      double b = 0;
-
-      int ir = (int)(255.99 * r);
-      int ig = (int)(255.999 * g);
-      int ib = (int)(255.999 * b);
-
-      fprintf(file, "%d %d %d\n", ir, ig, ib);
+      pixel_color.R = (double)j / (img_width - 1);
+      
+      write_color(file, &pixel_color);
     }
   }
 

@@ -18,10 +18,13 @@ HMM_Vec3 unit_dir(HMM_Vec3* vec) {
 
 HMM_Vec3 ray_color(Ray* ray) {
   HMM_Vec3 test_sphere_center = { .X = 0, .Y = 0, .Z = -1 };
+  float t = hit_sphere(&test_sphere_center, 0.5, ray);
   
-  if(hit_sphere(&test_sphere_center, 0.5, ray) == true) {
-    HMM_Vec3 new_color = { .R = 1, .G = 0, .B = 0 };
-    return new_color;
+  if(t > -1) {
+    HMM_Vec3 N_vec = HMM_SubV3(ray_at(ray, t), test_sphere_center);
+    HMM_Vec3 N = unit_dir(&N_vec);
+    HMM_Vec3 color = { .R = N.X+1, .G = N.Y+1, .B = N.Z+1 };
+    return HMM_MulV3F(color, 0.5);
   }
 
   HMM_Vec3 unit = unit_dir(&ray->dir);

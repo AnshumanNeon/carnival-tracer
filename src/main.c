@@ -1,4 +1,3 @@
-#include "../include/ray.h"
 #include "../include/color.h"
 
 int main() {
@@ -11,6 +10,19 @@ int main() {
   if(img_height < 1) {
     img_height = 1;
   }
+
+  hitlist world;
+
+  HMM_Vec3 c_1 = { .X = 0, .Y = 0, .Z = -1 };
+  HMM_Vec3 c_2 = { .X = 0, .Y = -100.5, .Z = -1 };
+  Sphere sph_1 = { .center = c_1, .radius = 0.5 };
+  Sphere sph_2 = { .center = c_2, .radius = 100 };
+
+  hittable h_1 = { .sphere = sph_1 };
+  hittable h_2 = { .sphere = sph_2 };
+
+  add_to_hitlist(&world, &h_1);
+  add_to_hitlist(&world, &h_2);
 
   float focal_length = 1;
   float viewport_height = 2;
@@ -41,7 +53,7 @@ int main() {
 
       Ray ray = { .dir = ray_dir, .origin = camera_center };
 
-      HMM_Vec3 pixel_color = ray_color(&ray);
+      HMM_Vec3 pixel_color = ray_color(&ray, &world);
       
       write_color(file, &pixel_color);
     }

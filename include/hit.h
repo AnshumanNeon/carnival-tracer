@@ -24,19 +24,19 @@ typedef struct hitlist {
   int length;
 } hitlist;
 
-void add_to_hitlist(hitlist* list, hittable* obj) {
-  list->hittables[list->length] = *obj;
+void add_to_hitlist(hitlist* list, hittable obj) {
+  list->hittables[list->length] = obj;
   list->length++;
 }
 
-bool set_face_normal(Ray* ray, HMM_Vec3* outward_normal) {
-  return HMM_Dot(ray->dir, *outward_normal) < 0;
+bool set_face_normal(Ray* r, HMM_Vec3* outward_normal) {
+  return HMM_DotV3(r->dir, *outward_normal) < 0;
 }
 
 bool hit_sphere(Sphere* sphere, Ray* ray, float t_min, float t_max, hit_record* record) {
   HMM_Vec3 oc = HMM_SubV3(sphere->center, ray->origin);
   float a = HMM_Len(ray->dir) * HMM_Len(ray->dir);
-  float h = HMM_DotV3(ray->dir, oc);
+  float h = HMM_DotV3(oc, ray->dir);
   float oc_sqr = HMM_Len(oc) * HMM_Len(oc);
   float c = oc_sqr - (sphere->radius * sphere->radius);
 
@@ -61,12 +61,8 @@ bool hit_sphere(Sphere* sphere, Ray* ray, float t_min, float t_max, hit_record* 
   record->position = ray_at(ray, record->t);
   HMM_Vec3 normal = HMM_DivV3F(HMM_SubV3(record->position, sphere->center), sphere->radius);
 
-  if(set_face_normal(ray, &normal)) {
-    record->normal = normal;
-  } else {
-    record->normal = -normal;
-  }
-
+  record->normal = normal;
+  
   return true;
 }
 
@@ -77,7 +73,7 @@ bool hit_any_hittable(hitlist* list, Ray* ray, float t_min, float t_max, hit_rec
   float closet_yet = t_max;
 
   for(int i = 0; i < list->length; i++) {
-    if(hit_sphere(&list->hittables[i].sphere, ray, t_min, t_max, record)) {
+    if(hit_sphere(&list->hittables[i].sphere, ray, t_min, closet_yet, &temp_record)) {
       hit_anything = true;
       closet_yet = temp_record.t;
       *record = temp_record;

@@ -21,8 +21,8 @@ int main() {
   hittable h_1 = { .sphere = sph_1 };
   hittable h_2 = { .sphere = sph_2 };
 
-  add_to_hitlist(&world, &h_1);
-  add_to_hitlist(&world, &h_2);
+  add_to_hitlist(&world, h_1);
+  add_to_hitlist(&world, h_2);
 
   float focal_length = 1;
   float viewport_height = 2;

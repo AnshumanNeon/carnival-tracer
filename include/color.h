@@ -18,16 +18,16 @@ HMM_Vec3 unit_dir(HMM_Vec3* vec) {
 HMM_Vec3 ray_color(Ray* ray, hitlist* world) {
   hit_record rec;
   if(hit_any_hittable(world, ray, 0, INFINITY, &rec)) {
-    HMM_Vec3 N = unit_dir(&rec.normal);
-    HMM_Vec3 color = { .R = N.X+1, .G = N.Y+1, .B = N.Z+1 };
-    return HMM_MulV3F(color, 0.5);
+    HMM_Vec3 color = { .R = 1, .G = 1, .B = 1 };
+    HMM_Vec3 a = HMM_AddV3(unit_dir(&rec.normal), color);
+    return HMM_MulV3F(a, 0.5);
   }
 
   HMM_Vec3 unit = unit_dir(&ray->dir);
   float a = 0.5*(unit.Y + 1);
   HMM_Vec3 b = { .X = 1.0, .Y = 1.0, .Z = 1.0 };
-  HMM_Vec3 c = { .X = 0.5, .Y = 0.7, .Z = 1.0 };
-  return HMM_AddV3(HMM_MulV3F(b, 1-a), HMM_MulV3F(c, a));
+  HMM_Vec3 c = { .X = 0.2, .Y = 0.8, .Z = 1.0 };
+  return HMM_AddV3(HMM_MulV3F(b, 1.0-a), HMM_MulV3F(c, a));
 }
 
 #endif

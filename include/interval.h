@@ -19,6 +19,12 @@ bool surrounds(Interval* interval, float x) {
   return x < interval->max && x > interval->min;
 }
 
+float clamp(Interval* interval, float x) {
+  if(x < interval->min) return interval->min;
+  if(x > interval->max) return interval->max;
+  return x;
+}
+
 const Interval empty = { .min = INFINITY, .max = -INFINITY };
 const Interval universe = { .min = -INFINITY, .max = INFINITY };
 

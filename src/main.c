@@ -1,4 +1,10 @@
 #include "../include/color.h"
+#include "../include/common.h"
+
+HMM_Vec3 sample_square() {
+  HMM_Vec3 vec = { .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0 };
+  return vec;
+}
 
 int main() {
   FILE* file = fopen("./image.ppm", "w+");
@@ -43,19 +49,31 @@ int main() {
   HMM_Vec3 pixel100_loc = HMM_AddV3(viewport_upper_left, HMM_MulV3F(HMM_AddV3(delta_u, delta_v), 0.5f));
   
   fprintf(file, "P3\n%d %d\n255\n", img_width, img_height);
+
+  int sample_per_pixel = 10;
+  float pixel_smaples_scale;
+
+  pixel_smaples_scale = 1.0 / sample_per_pixel;
   
-  for(int i = 0; i < img_height; i++) {
-    printf("\rScanlines remaining: %d\n", img_height-i);
+  for(int j = 0; j < img_height; j++) {
+    printf("\rScanlines remaining: %d\n", img_height-j);
     
-    for(int j = 0; j < img_width; j++) {
-      HMM_Vec3 pixel_center = HMM_AddV3(pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, j), HMM_MulV3F(delta_v, i)));
-      HMM_Vec3 ray_dir = HMM_SubV3(pixel_center, camera_center);
-
-      Ray ray = { .dir = ray_dir, .origin = camera_center };
-
-      HMM_Vec3 pixel_color = ray_color(&ray, &world);
+    for(int i = 0; i < img_width; i++) {
+      HMM_Vec3 pixel_color = { .R=0, .G=0, .B=0};
       
-      write_color(file, &pixel_color);
+      for(int sample = 0; sample < sample_per_pixel; sample++){
+	HMM_Vec3 offset = sample_square();
+
+	HMM_Vec3 pixel_sample = HMM_AddV3(pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
+	HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
+
+	Ray ray = { .dir = ray_dir, .origin = camera_center };
+	pixel_color = HMM_AddV3(pixel_color, ray_color(&ray, &world));
+      }
+
+      HMM_Vec3 out_color = HMM_MulV3F(pixel_color, pixel_smaples_scale);
+      
+      write_color(file, &out_color);
     }
   }
 

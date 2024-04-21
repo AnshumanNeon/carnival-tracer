@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "./ray.h"
 #include "./hit.h"
+#include "interval.h"
 
 void write_color(FILE* file, HMM_Vec3* color) {
   HMM_Vec3 new_vec = HMM_MulV3F(*color, 255.999);
@@ -17,7 +18,8 @@ HMM_Vec3 unit_dir(HMM_Vec3* vec) {
 
 HMM_Vec3 ray_color(Ray* ray, hitlist* world) {
   hit_record rec;
-  if(hit_any_hittable(world, ray, 0, INFINITY, &rec)) {
+  Interval interval = { .min = 0, .max = INFINITY };
+  if(hit_any_hittable(world, ray, &interval, &rec)) {
     HMM_Vec3 color = { .R = 1, .G = 1, .B = 1 };
     HMM_Vec3 a = HMM_AddV3(unit_dir(&rec.normal), color);
     return HMM_MulV3F(a, 0.5);

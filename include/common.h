@@ -7,5 +7,6 @@
 #include "./ray.h"
 
 #include "../deps/handmademath/HandmadeMath.h"
+#include "./interval.h"
 
 #endif

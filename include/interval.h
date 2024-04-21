@@ -1,7 +1,8 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
-#include <cmath>
+#include <math.h>
+
 typedef struct Interval {
   float min, max;
 } Interval;

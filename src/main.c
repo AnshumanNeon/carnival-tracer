@@ -54,6 +54,8 @@ int main() {
   float pixel_smaples_scale;
 
   pixel_smaples_scale = 1.0 / sample_per_pixel;
+
+  int max_depth = 50;
   
   for(int j = 0; j < img_height; j++) {
     printf("\rScanlines remaining: %d\n", img_height-j);
@@ -68,7 +70,7 @@ int main() {
 	HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
 
 	Ray ray = { .dir = ray_dir, .origin = camera_center };
-	pixel_color = HMM_AddV3(pixel_color, ray_color(&ray, &world));
+	pixel_color = HMM_AddV3(pixel_color, ray_color(&ray, &world, max_depth));
       }
 
       HMM_Vec3 out_color = HMM_MulV3F(pixel_color, pixel_smaples_scale);

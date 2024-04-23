@@ -28,23 +28,6 @@ void write_color(FILE* file, HMM_Vec3* color) {
   fprintf(file, "%d %d %d\n", (int)new_vec.R, (int)new_vec.G, (int)new_vec.B);
 }
 
-HMM_Vec3 unit_dir(HMM_Vec3 *vec) { return HMM_DivV3F(*vec, HMM_Len(*vec)); }
-
-HMM_Vec3 random_in_unit_sphere() {
-  while(true) {
-    HMM_Vec3 p = random_vector_interval(-1, 1);
-    float p_sqr = HMM_Len(p) * HMM_Len(p);
-
-    if(p_sqr < 1) return p;
-  }
-}
-
-HMM_Vec3 random_unit_vector() {
-  HMM_Vec3 r = random_in_unit_sphere();
-
-  return unit_dir(&r);
-}
-
 HMM_Vec3 random_on_hemisphere(HMM_Vec3* normal) {
   HMM_Vec3 vec = random_unit_vector();
 
@@ -62,10 +45,16 @@ HMM_Vec3 ray_color(Ray* ray, hitlist* world, int depth) {
   Interval interval = { .min = 0.001, .max = INFINITY };
   
   if(hit_any_hittable(world, ray, &interval, &rec)) {
-    HMM_Vec3 dir = HMM_AddV3(rec.normal, random_unit_vector());
-    Ray ray = { .dir = dir, .origin = rec.position };
+    Ray scattered;
+    HMM_Vec3 color;
 
-    return HMM_MulV3F(ray_color(&ray, world, depth - 1), 0.5);
+    if(scatter_lambertian(rec.mat, ray, &rec, &color, &scattered)) {
+      return HMM_MulV3(ray_color(&scattered, world, depth - 1), color);
+    }
+
+    HMM_Vec3 no_color = { .R = 0, .G = 0, .B = 0 };
+    
+    return no_color;
   }
 
   HMM_Vec3 unit = unit_dir(&ray->dir);

@@ -19,16 +19,37 @@ int main() {
 
   hitlist world;
 
-  HMM_Vec3 c_1 = { .X = 0, .Y = 0, .Z = -1 };
-  HMM_Vec3 c_2 = { .X = 0, .Y = -100.5, .Z = -1 };
-  Sphere sph_1 = { .center = c_1, .radius = 0.5 };
-  Sphere sph_2 = { .center = c_2, .radius = 100 };
+  Sphere sph_1, sph_2, sph_3, sph_4;
+
+  HMM_Vec3 c_1 = { .X = 0, .Y = 0, .Z = -1.2 };
+  HMM_Vec3 c_2 = { .X = 0, .Y = -100.5, .Z = -1.0 };
+  HMM_Vec3 c_3 = { .X = -1.0, .Y = 0, .Z = -1.0 };
+  HMM_Vec3 c_4 = { .X = 1.0, .Y = 0, .Z = -1.0 };
+
+  HMM_Vec3 gournd_color = { .R = 0.8, .G = 0.8, .B = 0.0 };
+  HMM_Vec3 center_color = { .R = 0.1, .G = 0.2, .B = 0.5 };
+  HMM_Vec3 left_color = { .R = 0.8, .G = 0.8, .B = 0.8 };
+  HMM_Vec3 right_color = { .R = 0.8, .G = 0.6, .B = 0.2 };
+  
+  Lambertian mat_ground = { .albedo = gournd_color };
+  Lambertian mat_center = { .albedo = center_color };
+  Lambertian mat_left = { .albedo = left_color };
+  Lambertian mat_right = { .albedo = right_color };
+
+  sph_1 = *init_sphere(&sph_1, &c_1, 0.5, &mat_ground);
+  sph_2 = *init_sphere(&sph_2, &c_2, 100, &mat_center);
+  sph_3 = *init_sphere(&sph_1, &c_3, 0.5, &mat_left);
+  sph_4 = *init_sphere(&sph_1, &c_4, 0.5, &mat_right);
 
   hittable h_1 = { .sphere = sph_1 };
   hittable h_2 = { .sphere = sph_2 };
-
+  hittable h_3 = { .sphere = sph_3 };
+  hittable h_4 = { .sphere = sph_4 };
+  
   add_to_hitlist(&world, h_1);
   add_to_hitlist(&world, h_2);
+  add_to_hitlist(&world, h_3);
+  add_to_hitlist(&world, h_4);
 
   float focal_length = 1;
   float viewport_height = 2;

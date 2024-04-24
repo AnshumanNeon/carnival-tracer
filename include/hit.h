@@ -1,6 +1,6 @@
 #ifndef HIT_H
 #define HIT_H
-
+#include <stdio.h>
 #include "./common.h"
 #include "interval.h"
 #include "./material.h"
@@ -61,17 +61,17 @@ bool set_face_normal(Ray* r, HMM_Vec3* outward_normal) {
 }
 
 bool near_zero(HMM_Vec3* vector) {
-  double s = 0.000000001;
+  double s = 1e-8;
 
-  return (fabs(vector->X) < s) && (fabs(vector->Y) < s) && (fabs(vector->Z) < s);
+  return (fabsf(vector->X) < s) && (fabsf(vector->Y) < s) && (fabsf(vector->Z) < s);
 }
 
-Sphere* init_sphere(Sphere* sphere, HMM_Vec3* center, float radius, Lambertian* mat) {
+Sphere init_sphere(Sphere* sphere, HMM_Vec3* center, float radius, Lambertian* mat) {
   sphere->center = *center;
-  sphere->radius = radius;
+  sphere->radius = fmax(0, radius);
   sphere->mat = mat;
 
-  return sphere;
+  return *sphere;
 }
 
 bool hit_sphere(Sphere* sphere, Ray* ray, Interval* interval, hit_record* record) {
@@ -111,20 +111,20 @@ bool hit_sphere(Sphere* sphere, Ray* ray, Interval* interval, hit_record* record
 
 bool hit_any_hittable(hitlist* list, Ray* ray, Interval* interval, hit_record* record) {
   hit_record temp_record;
-  bool hit_anything = false;
 
   float closet_yet = interval->max;
 
   for(int i = 0; i < list->length; i++) {
     Interval new_interval = { .min = interval->min, .max = closet_yet };
     if(hit_sphere(&list->hittables[i].sphere, ray, &new_interval, &temp_record)) {
-      hit_anything = true;
       closet_yet = temp_record.t;
       *record = temp_record;
+
+      return true;
     }
   }
 
-  return hit_anything;
+  return false;
 }
 
 bool scatter_metal(Material* mat, Ray* ray, hit_record* rec, HMM_Vec3* color, Ray* scattered_ray) {
@@ -138,14 +138,15 @@ bool scatter_metal(Material* mat, Ray* ray, hit_record* rec, HMM_Vec3* color, Ra
 
 bool scatter_lambertian(Lambertian* lambertian, Ray* ray, hit_record* rec, HMM_Vec3* attenuation, Ray* scattered_ray) {
   HMM_Vec3 scatter_dir = HMM_AddV3(rec->normal, random_unit_vector());
-
+  
   if(near_zero(&scatter_dir)) {
     scatter_dir = rec->normal;
+    printf("hello");
   }
   
   Ray new_ray = { .origin = rec->position, .dir = scatter_dir };
   scattered_ray = &new_ray;
-  attenuation = &lambertian->albedo;
+  *attenuation = lambertian->albedo;
 
   return true;
 }

@@ -22,9 +22,10 @@ void write_color(FILE* file, HMM_Vec3* color) {
   new_vec.B = linear_to_gamma(new_vec.B);
   
   Interval intensity = { .min=0.000, .max=0.999 };
-  new_vec.R = 256 * clamp(&intensity, new_vec.R);
-  new_vec.G = 256 * clamp(&intensity, new_vec.G);
-  new_vec.B = 256 * clamp(&intensity, new_vec.B);
+  new_vec.R = 255.99 * clamp(&intensity, new_vec.R);
+  new_vec.G = 255.99 * clamp(&intensity, new_vec.G);
+  new_vec.B = 255.99 * clamp(&intensity, new_vec.B);
+
   fprintf(file, "%d %d %d\n", (int)new_vec.R, (int)new_vec.G, (int)new_vec.B);
 }
 

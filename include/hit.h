@@ -138,14 +138,10 @@ bool scatter_metal(Material* mat, Ray* ray, hit_record* rec, HMM_Vec3* color, Ra
 
 bool scatter_lambertian(Lambertian* lambertian, Ray* ray, hit_record* rec, HMM_Vec3* attenuation, Ray* scattered_ray) {
   HMM_Vec3 scatter_dir = HMM_AddV3(rec->normal, random_unit_vector());
-  
-  if(near_zero(&scatter_dir)) {
-    scatter_dir = rec->normal;
-    printf("hello");
-  }
-  
+
   Ray new_ray = { .origin = rec->position, .dir = scatter_dir };
-  scattered_ray = &new_ray;
+
+  *scattered_ray = new_ray;
   *attenuation = lambertian->albedo;
 
   return true;

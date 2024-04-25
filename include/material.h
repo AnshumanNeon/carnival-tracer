@@ -5,6 +5,7 @@
 
 typedef struct Metal {
   HMM_Vec3 albedo;
+  float fuzz;
 } Metal;
 
 typedef struct Lambertian {

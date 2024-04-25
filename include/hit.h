@@ -141,11 +141,14 @@ bool hit_any_hittable(hitlist* list, Ray* ray, Interval* interval, hit_record* r
 
 bool scatter_metal(Metal* metal, Ray* ray, hit_record* rec, HMM_Vec3* color, Ray* scattered_ray) {
   HMM_Vec3 reflected = vec_reflect(&ray->dir, &rec->normal);
+  reflected = HMM_AddV3(unit_dir(&reflected), HMM_MulV3F(random_unit_vector(), metal->fuzz));
+  
   Ray r = { .dir = reflected, .origin = rec->position };
+
   *scattered_ray = r;
   *color = metal->albedo;
   
-  return true;
+  return (HMM_Dot(scattered_ray->dir, rec->normal) > 0);
 }
 
 bool scatter_lambertian(Lambertian* lambertian, Ray* ray, hit_record* rec, HMM_Vec3* attenuation, Ray* scattered_ray) {

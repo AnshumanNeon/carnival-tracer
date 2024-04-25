@@ -33,8 +33,8 @@ int main() {
   
   Lambertian mat_ground = { .albedo = gournd_color };
   Lambertian mat_center = { .albedo = center_color };
-  Metal mat_left = { .albedo = left_color };
-  Metal mat_right = { .albedo = right_color };
+  Metal mat_left = { .albedo = left_color, .fuzz = 0.3 };
+  Metal mat_right = { .albedo = right_color, .fuzz = 1.0 };
 
   sph_1 = init_sphere(&sph_1, &c_1, 100, &mat_ground, NULL, false);
   sph_2 = init_sphere(&sph_2, &c_2, 0.5, &mat_center, NULL, false);

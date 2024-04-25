@@ -3,9 +3,9 @@
 
 #include "./common.h"
 
-typedef struct Material {
+typedef struct Metal {
   HMM_Vec3 albedo;
-} Material;
+} Metal;
 
 typedef struct Lambertian {
   HMM_Vec3 albedo;

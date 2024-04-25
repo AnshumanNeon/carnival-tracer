@@ -9,7 +9,7 @@ BUILD_DIR = ./build
 
 SRC_FILES = $(shell find $(SRC_DIR) -name *.c)
 
-C_FLAGS = -Wall -Werror
+C_FLAGS = -Wall -Werror -Wpedantic
 
 INC_FILES = $(addprefix -I,$(INCLUDE_DIR))
 

@@ -47,14 +47,16 @@ HMM_Vec3 ray_color(Ray* ray, hitlist* world, int depth) {
   
   if(hit_any_hittable(world, ray, &interval, &rec)) {
     Ray scattered;
-    HMM_Vec3 attenuation;
+    HMM_Vec3 attenuation = {0};
 
-    if(scatter_lambertian(rec.mat, ray, &rec, &attenuation, &scattered)) {
-      return HMM_MulV3(ray_color(&scattered, world, depth - 1), attenuation);
+    if(rec.is_metal) {
+      if(scatter_metal(rec.metal, ray, &rec, &attenuation, &scattered)) return HMM_MulV3(ray_color(&scattered, world, depth - 1), attenuation);
+    } else {
+      if (scatter_lambertian(rec.mat, ray, &rec, &attenuation, &scattered)) return HMM_MulV3(ray_color(&scattered, world, depth - 1), attenuation);
     }
 
-    HMM_Vec3 no_color = { .R = 0, .G = 0, .B = 0 };
-    return no_color;
+    HMM_Vec3 color = { .R = 0, .G = 0, .B = 0 };
+    return color;
   }
 
   HMM_Vec3 unit = unit_dir(&ray->dir);

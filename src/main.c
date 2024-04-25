@@ -19,24 +19,36 @@ int main() {
 
   hitlist world;
 
-  Sphere sph_1, sph_2;
+  Sphere sph_1, sph_2, sph_3, sph_4;
 
-  HMM_Vec3 c_1 = { .X = 0, .Y = -100.5, .Z = -1 };
-  HMM_Vec3 c_2 = { .X = 0, .Y = 0, .Z = -1 };
+  HMM_Vec3 c_1 = { .X = 0.0, .Y = -100.5, .Z = -1.0 };
+  HMM_Vec3 c_2 = { .X = 0.0, .Y = 0.0, .Z = -1.2 };
+  HMM_Vec3 c_3 = { .X = -1.0, .Y = 0.0, .Z = -1.0 };
+  HMM_Vec3 c_4 = { .X = 1.0, .Y = 0.0, .Z = -1.0 };
 
   HMM_Vec3 gournd_color = { .R = 0.8, .G = 0.8, .B = 0.0 };
   HMM_Vec3 center_color = { .R = 0.1, .G = 0.2, .B = 0.5 };
+  HMM_Vec3 left_color = { .R = 0.8, .G = 0.8, .B = 0.8 };
+  HMM_Vec3 right_color = { .R = 0.8, .G = 0.6, .B = 0.2 };
   
   Lambertian mat_ground = { .albedo = gournd_color };
   Lambertian mat_center = { .albedo = center_color };
+  Metal mat_left = { .albedo = left_color };
+  Metal mat_right = { .albedo = right_color };
 
-  sph_1 = init_sphere(&sph_1, &c_1, 100, &mat_ground);
-  sph_2 = init_sphere(&sph_2, &c_2, 0.5, &mat_center);
-
+  sph_1 = init_sphere(&sph_1, &c_1, 100, &mat_ground, NULL, false);
+  sph_2 = init_sphere(&sph_2, &c_2, 0.5, &mat_center, NULL, false);
+  sph_3 = init_sphere(&sph_3, &c_3, 0.5, NULL, &mat_left, true);
+  sph_4 = init_sphere(&sph_4, &c_4, 0.5, NULL, &mat_right, true);
+  
   hittable h_1 = { .sphere = sph_1 };
   hittable h_2 = { .sphere = sph_2 };
-  
+  hittable h_3 = { .sphere = sph_3 };
+  hittable h_4 = { .sphere = sph_4 };
+   
   add_to_hitlist(&world, h_2);
+  add_to_hitlist(&world, h_3);
+  add_to_hitlist(&world, h_4);
   add_to_hitlist(&world, h_1);
 
   float focal_length = 1;
@@ -59,7 +71,7 @@ int main() {
   
   fprintf(file, "P3\n%d %d\n255\n", img_width, img_height);
 
-  int sample_per_pixel = 100;
+  int sample_per_pixel = 10;
   float pixel_smaples_scale;
 
   pixel_smaples_scale = 1.0 / sample_per_pixel;

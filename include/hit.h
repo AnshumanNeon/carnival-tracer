@@ -11,12 +11,16 @@ typedef struct hit_record {
   float t;
   bool front_face;
   Lambertian* mat;
+  Metal* metal;
+  bool is_metal;
 } hit_record;
 
 typedef struct Sphere {
   HMM_Vec3 center;
   float radius;
   Lambertian* mat;
+  Metal* metal;
+  bool is_metal;
 } Sphere;
 
 typedef union hittable {
@@ -31,7 +35,7 @@ typedef struct hitlist {
 HMM_Vec3 unit_dir(HMM_Vec3 *vec) { return HMM_DivV3F(*vec, HMM_Len(*vec)); }
 
 HMM_Vec3 vec_reflect(HMM_Vec3* vec, HMM_Vec3* n) {
-  HMM_Vec3 x = HMM_MulV3F(*n, HMM_Dot(*vec , *n));
+  HMM_Vec3 x = HMM_MulV3F(*n, 2 * HMM_Dot(*vec, *n));
 
   return HMM_SubV3(*vec, x);
 }
@@ -66,10 +70,12 @@ bool near_zero(HMM_Vec3* vector) {
   return (fabsf(vector->X) < s) && (fabsf(vector->Y) < s) && (fabsf(vector->Z) < s);
 }
 
-Sphere init_sphere(Sphere* sphere, HMM_Vec3* center, float radius, Lambertian* mat) {
+Sphere init_sphere(Sphere* sphere, HMM_Vec3* center, float radius, Lambertian* mat, Metal* metal, bool is_metal) {
   sphere->center = *center;
   sphere->radius = fmax(0, radius);
   sphere->mat = mat;
+  sphere->metal = metal;
+  sphere->is_metal = is_metal;
 
   return *sphere;
 }
@@ -104,7 +110,13 @@ bool hit_sphere(Sphere* sphere, Ray* ray, Interval* interval, hit_record* record
 
   record->normal = normal;
 
-  record->mat = sphere->mat;
+  record->is_metal = sphere->is_metal;
+
+  if(record->is_metal) {
+    record->metal = sphere->metal;
+  } else {
+    record->mat = sphere->mat;
+  }
   
   return true;
 }
@@ -127,17 +139,21 @@ bool hit_any_hittable(hitlist* list, Ray* ray, Interval* interval, hit_record* r
   return false;
 }
 
-bool scatter_metal(Material* mat, Ray* ray, hit_record* rec, HMM_Vec3* color, Ray* scattered_ray) {
+bool scatter_metal(Metal* metal, Ray* ray, hit_record* rec, HMM_Vec3* color, Ray* scattered_ray) {
   HMM_Vec3 reflected = vec_reflect(&ray->dir, &rec->normal);
   Ray r = { .dir = reflected, .origin = rec->position };
-  scattered_ray = &r;
-  color = &mat->albedo;
+  *scattered_ray = r;
+  *color = metal->albedo;
   
   return true;
 }
 
 bool scatter_lambertian(Lambertian* lambertian, Ray* ray, hit_record* rec, HMM_Vec3* attenuation, Ray* scattered_ray) {
   HMM_Vec3 scatter_dir = HMM_AddV3(rec->normal, random_unit_vector());
+
+  if(near_zero(&scatter_dir)) {
+    scatter_dir = rec->normal;
+  }
 
   Ray new_ray = { .origin = rec->position, .dir = scatter_dir };
 

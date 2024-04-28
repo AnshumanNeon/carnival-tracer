@@ -24,7 +24,7 @@ int main() {
   FILE* file = fopen("./image.ppm", "w+");
 
   float aspect_ratio = 16.0f / 9.0f;
-  int img_width = 400;
+  int img_width = 800;
 
   int img_height = (int)(img_width / aspect_ratio);
   if(img_height < 1) {

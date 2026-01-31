@@ -1,10 +1,9 @@
 #include "../include/color.h"
 #include "../include/common.h"
 
-HMM_Vec3 sample_square() {
-  HMM_Vec3 vec = { .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0 };
-  return vec;
-}
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
 
 float degree_to_rad(float deg) { return deg * HMM_PI / 180.0; }
 
@@ -15,10 +14,12 @@ HMM_Vec3 random_in_unit_disk() {
   }
 }
 
+/*
 HMM_Vec3 defocus_disk_sample(HMM_Vec3 camera_center, HMM_Vec3 defocus_u, HMM_Vec3 defocus_v) {
   HMM_Vec3 p = random_in_unit_disk();
   return HMM_AddV3(camera_center, HMM_AddV3(HMM_MulV3F(defocus_u, p.X), HMM_MulV3F(defocus_v, p.Y)));
 }
+*/
 
 int main() {
   FILE* file = fopen("./image.ppm", "w+");
@@ -65,6 +66,7 @@ int main() {
   add_to_hitlist(&world, h_4);
   add_to_hitlist(&world, h_1);
 
+  /*
   HMM_Vec3 lookfrom = { .X = 0, .Y = 0, .Z = 0 };
   HMM_Vec3 lookat = { .X= 0, .Y = 0, .Z = -1 };
   HMM_Vec3 vup = { .X= 0, .Y = 1, .Z = 0 };
@@ -76,61 +78,67 @@ int main() {
 
   HMM_Vec3 defocus_disk_u, defocus_disk_v;
 
-  HMM_Vec3 camera_center = lookfrom;
-  
   float vfov = 90;
   float theta = degree_to_rad(vfov);
   float h = tan(theta / 2);
-  float viewport_height = 2 * h * focus_dist;
-  float viewport_width = viewport_height * ((double)img_width / img_height);
+  float viewport_height = 2 * h * focus_dist;*/
 
+  const float focal_length = 1;
+  const float viewport_height = 2;
+  
+  const float viewport_width = viewport_height * ((double)img_width / img_height);
+
+  /*
   w = HMM_NormV3(HMM_SubV3(lookfrom, lookat));
   
   u = HMM_NormV3(HMM_Cross(vup, w));
 
-  v = HMM_Cross(w, u);
+  v = HMM_Cross(w, u);*/
+  const HMM_Vec3 camera_center = { .X = 0, .Y = 0, .Z = 0 };
 
-  HMM_Vec3 viewport_u = HMM_MulV3F(u, viewport_width);
-  HMM_Vec3 viewport_v = HMM_MulV3F(HMM_MulV3F(v, -1), viewport_height);
+  HMM_Vec3 viewport_u = { .X = viewport_width, .Y = 0, .Z = 0 };
+  HMM_Vec3 viewport_v = { .X = 0, .Y = viewport_height, .Z = 0 };
 
   HMM_Vec3 delta_u = HMM_DivV3F(viewport_u , img_width);
   HMM_Vec3 delta_v = HMM_DivV3F(viewport_v , img_height);
 
-  HMM_Vec3 viewport_upper_left = HMM_SubV3(camera_center, HMM_AddV3(HMM_MulV3F(w, focus_dist), HMM_AddV3(HMM_DivV3F(viewport_u, 2), HMM_DivV3F(viewport_v, 2))));
-
+  //HMM_Vec3 viewport_upper_left = HMM_SubV3(camera_center, HMM_AddV3(HMM_MulV3F(w, focus_dist), HMM_AddV3(HMM_DivV3F(viewport_u, 2), HMM_DivV3F(viewport_v, 2))));
+  HMM_Vec3 focal_vec = { .X = 0, .Y = 0, .Z = focal_length };
+  HMM_Vec3 viewport_upper_left = HMM_SubV3(camera_center, HMM_AddV3(focal_vec, HMM_AddV3(HMM_DivV3F(viewport_u, 2), HMM_DivV3F(viewport_v, 2))));
+  
   HMM_Vec3 pixel100_loc = HMM_AddV3(viewport_upper_left, HMM_MulV3F(HMM_AddV3(delta_u, delta_v), 0.5f));
 
-  float defocus_radius = focus_dist * tan(degree_to_rad(defocus_angle / 2));
+  /*float defocus_radius = focus_dist * tan(degree_to_rad(defocus_angle / 2));
   defocus_disk_u = HMM_MulV3F(u, defocus_radius);
-  defocus_disk_v = HMM_MulV3F(v, defocus_radius);
+  defocus_disk_v = HMM_MulV3F(v, defocus_radius);*/
   
   fprintf(file, "P3\n%d %d\n255\n", img_width, img_height);
 
-  int sample_per_pixel = 100;
+  const int sample_per_pixel = 10;
   float pixel_smaples_scale;
 
   pixel_smaples_scale = 1.0 / sample_per_pixel;
 
-  int max_depth = 60;
+  const int max_depth = 50;
   
-  for(int j = 0; j < img_height; j++) {
+  for(int j = img_height; j > 0; j--) {
     printf("\rScanlines remaining: %d\n", img_height-j);
     
     for(int i = 0; i < img_width; i++) {
       HMM_Vec3 pixel_color = { .R=0, .G=0, .B=0};
-      
-      for(int sample = 0; sample < sample_per_pixel; sample++){
-	HMM_Vec3 offset = sample_square();
+
+      for(int sample = 0; sample < sample_per_pixel; sample++) {
+	HMM_Vec3 offset = { .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0 };
 
 	HMM_Vec3 pixel_sample = HMM_AddV3(pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
 	HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
 
-	HMM_Vec3 ray_origin;
+	/*HMM_Vec3 ray_origin;
 
-	if(defocus_angle <= 0) ray_origin = camera_center;
-	else ray_origin = defocus_disk_sample(camera_center, defocus_disk_u, defocus_disk_v);
+	  if(defocus_angle <= 0) ray_origin = camera_center;
+	  else ray_origin = defocus_disk_sample(camera_center, defocus_disk_u, defocus_disk_v);*/
 
-	Ray ray = { .dir = ray_dir, .origin = ray_origin };
+	Ray ray = { .dir = ray_dir, .origin = camera_center };
 	pixel_color = HMM_AddV3(pixel_color, ray_color(&ray, &world, max_depth));
       }
 

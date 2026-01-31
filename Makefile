@@ -1,4 +1,4 @@
-CC = gcc
+/CC = gcc
 
 TARGET = carnival
 
@@ -16,6 +16,13 @@ INC_FILES = $(addprefix -I,$(INCLUDE_DIR))
 $(BUILD_DIR)/$(TARGET): $(OBJ)
 	mkdir -p $(BUILD_DIR)
 	$(CC) $(C_FLAGS) $(INC_FILES) $(SRC_FILES) -o $@
+
+profile: $(OBJ)
+	mkdir -p $(BUILD_DIR)
+	$(CC) $(C_FLAGS) -O2 -fprofile-instr-generate $(INC_FILES) $(SRC_FILES) -o $(BUILD_DIR)/$(TARGET)
+
+profile-run:
+	$(BUILD_DIR)/$(TARGET) -fprofile-instr-use
 
 .PHONY: $(BUILD_DIR)/$(TARGET) clean
 clean:

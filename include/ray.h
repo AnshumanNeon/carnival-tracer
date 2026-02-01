@@ -2,7 +2,7 @@
 #define RAY_H
 
 #include <stdbool.h>
-#include "../deps/handmademath/HandmadeMath.h"
+#include <handmademath/HandmadeMath.h>
 
 typedef struct Ray {
   HMM_Vec3 dir;

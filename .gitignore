@@ -1,3 +1,4 @@
 build/
+deps/metal-cpp/
 image.ppm
 callgrind.*

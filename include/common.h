@@ -6,7 +6,7 @@
 
 #include "./ray.h"
 
-#include "../deps/handmademath/HandmadeMath.h"
+#include <handmademath/HandmadeMath.h>
 #include "./interval.h"
 
 float random_float() {

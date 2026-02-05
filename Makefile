@@ -1,4 +1,4 @@
-/CC = gcc
+CC = gcc
 
 TARGET = carnival
 
@@ -7,9 +7,9 @@ INCLUDE_DIR = include deps
 
 BUILD_DIR = ./build
 
-SRC_FILES = $(shell find $(SRC_DIR) -name *.c)
+SRC_FILES = ./src/main.c
 
-C_FLAGS = -Wall -Werror -Wpedantic
+C_FLAGS = -Wall -Werror
 
 INC_FILES = $(addprefix -I,$(INCLUDE_DIR))
 
@@ -34,7 +34,7 @@ run:
 
 gpu-build: $(OBJ)
 	mkdir -p $(BUILD_DIR)
-	$(CC) $(C_FLAGS) -DGPU $(INC_FILES) $(SRC_FILES) -o $(BUILD_DIR)/$(TARGET)
+	$(CC) $(C_FLAGS) -DGPU -L/opt/local/lib/libomp/ -lomp -Xpreprocessor -O1 $(INC_FILES) -I/opt/local/include/libomp/ $(SRC_FILES) -o $(BUILD_DIR)/$(TARGET)
 
 .PHONY: $(BUILD_DIR)/$(TARGET) clean
 clean:

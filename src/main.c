@@ -2,15 +2,7 @@
 #include "../include/common.h"
 
 #ifdef GPU
-
-#define NS_PRIVATE_IMPLEMENTATION
-#define CA_PRIVATE_IMPLEMENTATION
-#define MTL_PRIVATE_IMPLEMENTATION
-
-#include <Foundation/Foundation.hpp>
-#include <Metal/Metal.hpp>
-#include <QuartzCore/QuartzCore.hpp>
-
+#include <omp.h>
 #endif
 
 /*
@@ -113,7 +105,7 @@ int main() {
   
   fprintf(file, "P3\n%d %d\n255\n", img_width, img_height);
 
-  const int sample_per_pixel = 10;
+  const int sample_per_pixel = 100;
 
   const float pixel_smaples_scale = 1.0 / sample_per_pixel;
 
@@ -150,9 +142,11 @@ int main() {
 
   // actual calculations
 #ifdef GPU
-  HMM_Vec3 FileColorArray[450][800];
+  HMM_Vec3 (*FileColorArray)[800] = malloc(sizeof(HMM_Vec3) * img_height * img_width);
+  omp_set_num_threads(4);
   
-  for(int j = img_height; j > 0; j--) {
+#pragma omp parallel for schedule(dynamic, 1)
+  for(int j = img_height - 1; j > 0; j--) {
     printf("\rScanlines remaining: %d\n", j);
     
     for(int i = 0; i < img_width; i++) {
@@ -176,25 +170,27 @@ int main() {
       HMM_Vec3 out_color = HMM_MulV3F(pixel_color, pixel_smaples_scale);
       FileColorArray[j][i] = out_color;
     }
-  }
+}
 
-  // writing to file when caluclations done
-  for(int i = 0; i < img_height; i++) {
-    for(int j = 0; j < img_widht; j++) {
+  /* writing to file when caluclations done */
+  for(int i = img_height - 1; i >= 0; i--) {
+    for(int j = 0; j < img_width; j++) {
       write_color(file, &FileColorArray[i][j]);
     }
   }
+
+  free(FileColorArray);
 #endif
 
   printf("Done!");
   return 0;
 }
 
-float degree_to_rad(float deg) { return deg * HMM_PI / 180.0; }
+//static inline float degree_to_rad(float deg) { return deg * HMM_PI / 180.0; }
 
-HMM_Vec3 random_in_unit_disk() {
+/*static inline HMM_Vec3 random_in_unit_disk() {
   while(true) {
     HMM_Vec3 p = { .X = random_float_interval(-1, 1), .Y = random_float_interval(-1, 1), .Z = 0 };
     if(HMM_LenSqrV3(p) < 1) return p;
   }
-}
+  }*/

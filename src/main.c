@@ -23,7 +23,7 @@ int main() {
   FILE *file = fopen("./image.ppm", "w+");
 
   const float aspect_ratio = 16.0f / 9.0f;
-  const int img_width = 1280;
+  const int img_width = 720;
 
   int img_height = (int)(img_width / aspect_ratio);
   if (img_height < 1) {
@@ -70,8 +70,8 @@ int main() {
 
   HMM_Vec3 u, v, w;
 
-  const float defocus_angle = 10.0;
-  const float focus_dist = 3.4;
+  const float defocus_angle = 2.0;
+  const float focus_dist = 2;
 
   HMM_Vec3 defocus_disk_u, defocus_disk_v;
 
@@ -105,14 +105,14 @@ int main() {
 
   fprintf(file, "P3\n%d %d\n255\n", img_width, img_height);
 
-  const int sample_per_pixel = 100;
+  const int sample_per_pixel = 50;
 
   const float pixel_smaples_scale = 1.0 / sample_per_pixel;
 
   const int max_depth = 50;
 
 #ifndef GPU
-  for (int j = img_height; j > 0; j--) {
+  for (int j = 0; j < img_height; j++) {
     printf("\rScanlines remaining: %d\n", j);
 
     for (int i = 0; i < img_width; i++) {
@@ -122,9 +122,7 @@ int main() {
         HMM_Vec3 offset = {
             .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0};
 
-        HMM_Vec3 pixel_sample = HMM_AddV3(
-            pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X),
-                                    HMM_MulV3F(delta_v, j + offset.Y)));
+        HMM_Vec3 pixel_sample = HMM_AddV3(pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
         HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
 
         HMM_Vec3 ray_origin;
@@ -132,12 +130,11 @@ int main() {
 	if(defocus_angle <= 0) ray_origin = camera_center;
 	else ray_origin = defocus_disk_sample(camera_center, defocus_disk_u, defocus_disk_v);
 
-        Ray ray = {.dir = ray_dir, .origin = camera_center};
+        Ray ray = {.dir = ray_dir, .origin = ray_origin};
         pixel_color = HMM_AddV3(pixel_color, ray_color(&ray, &world, max_depth));
       }
 
       HMM_Vec3 out_color = HMM_MulV3F(pixel_color, pixel_smaples_scale);
-
       write_color(file, &out_color);
     }
   }
@@ -145,23 +142,18 @@ int main() {
 
   // actual calculations
 #ifdef GPU
-  HMM_Vec3 (*FileColorArray)[img_width] = malloc(sizeof(HMM_Vec3) * img_height * img_width);
   /* omp_set_num_threads(4); */
-
 #pragma omp parallel for schedule(dynamic, 1)
-  for (int j = img_height - 1; j > 0; j--) {
-    printf("\rScanlines remaining (gpu acceleration apparently): %d\n", j);
+  for (int j = 0; j < img_height; j++) {
+    printf("\rScanlines remaining (gpu acceleration apparently): %d\n", img_height - j);
 
     for (int i = 0; i < img_width; i++) {
       HMM_Vec3 pixel_color = {.R = 0, .G = 0, .B = 0};
 
       for (int sample = 0; sample < sample_per_pixel; sample++) {
-        HMM_Vec3 offset = {
-            .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0};
+        HMM_Vec3 offset = { .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0 };
 
-        HMM_Vec3 pixel_sample = HMM_AddV3(
-            pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X),
-                                    HMM_MulV3F(delta_v, j + offset.Y)));
+        HMM_Vec3 pixel_sample = HMM_AddV3( pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
         HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
 
         HMM_Vec3 ray_origin;
@@ -169,23 +161,14 @@ int main() {
 	if(defocus_angle <= 0) ray_origin = camera_center;
 	else ray_origin = defocus_disk_sample(camera_center, defocus_disk_u, defocus_disk_v);
 
-        Ray ray = {.dir = ray_dir, .origin = camera_center};
+        Ray ray = {.dir = ray_dir, .origin = ray_origin};
         pixel_color = HMM_AddV3(pixel_color, ray_color(&ray, &world, max_depth));
       }
 
       HMM_Vec3 out_color = HMM_MulV3F(pixel_color, pixel_smaples_scale);
-      FileColorArray[j][i] = out_color;
+      write_color(file, &out_color);
     }
   }
-
-  /* writing to file when caluclations done */
-  for (int i = 0; i < img_height; i++) {
-    for (int j = 0; j < img_width; j++) {
-      write_color(file, &FileColorArray[i][j]);
-    }
-  }
-
-  free(FileColorArray);
 #endif
 
   printf("Done!");

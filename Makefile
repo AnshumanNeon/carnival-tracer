@@ -1,5 +1,3 @@
-CC = gcc
-
 TARGET = carnival
 
 SRC_DIR = src
@@ -9,7 +7,7 @@ BUILD_DIR = ./build
 
 SRC_FILES = ./src/main.c
 
-C_FLAGS = -Werror
+C_FLAGS = -Wall -Werror
 
 INC_FILES = $(addprefix -I,$(INCLUDE_DIR))
 

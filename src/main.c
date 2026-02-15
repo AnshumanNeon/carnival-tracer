@@ -95,7 +95,7 @@ int main() {
   HMM_Vec3 delta_v = HMM_DivV3F(viewport_v, img_height);
 
   HMM_Vec3 viewport_upper_left = HMM_SubV3(camera_center, HMM_AddV3(HMM_MulV3F(w, focus_dist), HMM_AddV3(HMM_DivV3F(viewport_u, 2), HMM_DivV3F(viewport_v, 2))));
-  HMM_Vec3 focal_vec = {.X = 0, .Y = 0, .Z = focus_dist};
+  /* HMM_Vec3 focal_vec = {.X = 0, .Y = 0, .Z = focus_dist}; */
 
   HMM_Vec3 pixel100_loc = HMM_AddV3(viewport_upper_left, HMM_MulV3F(HMM_AddV3(delta_u, delta_v), 0.5f));
 
@@ -109,18 +109,17 @@ int main() {
 
   const float pixel_smaples_scale = 1.0 / sample_per_pixel;
 
-  const int max_depth = 50;
+  const int max_depth = 20;
 
 #ifndef GPU
   for (int j = 0; j < img_height; j++) {
-    printf("\rScanlines remaining: %d\n", j);
+    printf("\rScanlines remaining: %d\n", img_height - j);
 
     for (int i = 0; i < img_width; i++) {
       HMM_Vec3 pixel_color = {.R = 0, .G = 0, .B = 0};
 
       for (int sample = 0; sample < sample_per_pixel; sample++) {
-        HMM_Vec3 offset = {
-            .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0};
+        HMM_Vec3 offset = { .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0};
 
         HMM_Vec3 pixel_sample = HMM_AddV3(pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
         HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
@@ -153,7 +152,7 @@ int main() {
       for (int sample = 0; sample < sample_per_pixel; sample++) {
         HMM_Vec3 offset = { .X = random_float() - 0.5, .Y = random_float() - 0.5, .Z = 0 };
 
-        HMM_Vec3 pixel_sample = HMM_AddV3( pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
+        HMM_Vec3 pixel_sample = HMM_AddV3(pixel100_loc, HMM_AddV3(HMM_MulV3F(delta_u, i + offset.X), HMM_MulV3F(delta_v, j + offset.Y)));
         HMM_Vec3 ray_dir = HMM_SubV3(pixel_sample, camera_center);
 
         HMM_Vec3 ray_origin;
